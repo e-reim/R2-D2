@@ -10,7 +10,7 @@ App keywords
     ${e22}=    Run Keyword And Expect Error    *    App Launch    nonexistent_app    assert
     Should Contain    ${e22}    WindowsError: [Errno 22]
     ${app}=    App Launch    ipy.exe    params    ..\\gui_progs\\winforms\\gui.py    test_teardown    assert
-    ${v}=    App State    ${app}    timeout    5s    assert    running
+    ${v}=    App State    ${app}    timeout    ~5s    assert    running
     Should Be True    ${v}
     ${v}=    App State    ${app}    not_running
     Should Not Be True    ${v}
@@ -47,24 +47,24 @@ App keywords
 Wnd keywords
     ${app1}=    App Launch    ipy64.exe    params    ..\\gui_progs\\wpf\\gui.py    assert    test_teardown
     ${win1}=    Wnd Get    re_title    ^.*ipy64\.exe$    single    assert    timeout
-    ...    5s
+    ...    ~5s
     ${app2}=    App Launch    ipy.exe    params    ..\\gui_progs\\wpf\\gui.py    assert    test_teardown
     ${win2}=    Wnd Get    app    ${app2}    re_title    ^.*ipy\\.exe$    single
-    ...    assert    timeout    5s
-    Comment    App State    ${app1}    not_running    timeout    3s
+    ...    assert    timeout    ~5s
+    #App State    ${app1}    not_running    timeout    3s
     ${win2}=    Wnd Get    app    ${app1}    title    IronPythonWPF    single
-    ...    timeout    15s    assert
+    ...    timeout    ~5s    assert
     @{li}=    Wnd Get    app    ${app1}
     ${l}=    Get Length    ${li}
     Should Be Equal As Integers    ${l}    2
     Wnd Attr    ${win1}    do close
     App State    ${app1}    not_running    timeout    ~5s    assert
     ${aid_wnd}=    Wnd Get    app    ${app2}    re_automation_id    ^IronPythonW.F$    single
-    ...    timeout    5s    assert
+    ...    timeout    ~5s    assert
     ${aid_wnd}=    Wnd Get    app    ${app2}    automation_id    IronPythonWPF    single
-    ...    timeout    5s    assert
+    ...    timeout    ~5s    assert
     Wnd Attr    ${aid_wnd}    do close
-    Wnd Get    app    ${app2}    none    timeout    15s    assert
+    Wnd Get    app    ${app2}    none    timeout    ~15s    assert
 
 Ctl keywords, text and list
     ${app1}=    App Launch    ipy.exe    params    ..\\gui_progs\\wpf\\gui.py    assert    test_teardown
@@ -87,7 +87,7 @@ Ctl keywords, text and list
     Sleep    1s
     ${list}=    Ctl Get    list    parent    ${win1}    automation_id    AID_ListBox1
     ...    single
-    Ctl Attr    ${list}    wait num_items    6    wait enabled    timeout    5s
+    Ctl Attr    ${list}    wait num_items    6    wait enabled    timeout    ~5s
     ...    assert
     @{listitems}=    Ctl Attr    ${list}    listitems
     ${idx_selected}=    Ctl Attr    ${list}    idx_selected
@@ -121,15 +121,15 @@ Ctl keywords, text and list
 Textbox testcase
     ${app1}=    App Launch    ipy64.exe    params    ..\\gui_progs\\wpf\\gui.py    assert    test_teardown
     ${win}=    Wnd Get    app    ${app1}    title    IronPythonWPF    single
-    ...    timeout    5s    assert
+    ...    timeout    ~5s    assert
     ${text}=    Ctl Get    text    parent    ${win}    automation_id    AID_TextBlock1
-    ...    single    timeout    2s    assert
+    ...    single    timeout    ~2s    assert
     Ctl Attr    ${text}    do focus
 
 Modal window
     ${app1}=    App Launch    ipy.exe    params    ..\\gui_progs\\winforms\\gui.py    assert
     ${win}=    Wnd Get    app    ${app1}    title    Hello World App    single
-    ...    timeout    5s    assert
+    ...    timeout    ~5s    assert
     Comment    ${win}=    Wnd Get    title    Hello World App    single    timeout
     ...    5s    assert
     Comment    ${dlg}=    Wnd Get    parent    ${win}    single    timeout
@@ -139,7 +139,7 @@ Modal window
     Ctl Attr    ${b}    do click
     Comment    ${dlg}=    Wnd Get    parent    ${win}    timeout    5s
     ...    assert
-    ${dlg}=    Wnd Get    parent    ${win}    timeout    5s    assert
+    ${dlg}=    Wnd Get    parent    ${win}    timeout    ~5s    assert
     ...    single
     Wnd Attr    ${dlg}    do wait_while_busy
     Wnd Attr    ${dlg}    do close
@@ -149,7 +149,7 @@ in_texts testing
     [Tags]    test_tag
     ${app1}=    App Launch    ipy.exe    params    ..\\gui_progs\\winforms\\gui.py    assert    test_teardown
     ${win}=    Wnd Get    app    ${app1}    in_texts    Hello World App    in_texts
-    ...    Click Me    re_in_texts    ^Cli...Me$    single    timeout    5s
+    ...    Click Me    re_in_texts    ^Cli...Me$    single    timeout    ~5s
     ...    assert
     Run Keyword And Expect Error    IronbotException: Wnd Filter failed: The result does not match 'single' flag, found 0 item(s)    Wnd Get    app    ${app1}    in_texts    Hello World App
     ...    in_texts    Click Me    re_in_texts    ^Cli....Me$    single    assert
@@ -160,44 +160,30 @@ in_texts testing
 Menus
     Comment    ${app1}=    App Launch    ipy64.exe    params    ..\\gui_progs\\wpf\\gui.py    assert
     ${app1}=    App Launch    notepad.exe
-    ${win}=    Wnd Get    app    ${app1}    single    timeout    5s
+    ${win}=    Wnd Get    app    ${app1}    single    timeout    ~5s
     ...    assert
     Wnd Attr    ${win}    do wait_while_busy
     ${menu}=    Wnd Attr    ${win}    get menu
     ${menu}=    Ctl Get    menu    parent    ${win}    name    Application
-    ...    single
-    ${menu}=    Run Keyword If    ${menu}    Set Variable    ${menu}
-    ...    ELSE    Ctl Get    menu    parent    ${win}    name
-    ...    Приложение    single    assert
+    ...    single    assert
     ${about}=    Ctl Attr    ${menu}    get menuitem    Help    About Notepad
-    ${about}=    Run Keyword If    '${about}' != ''    Set Variable    ${about}
-    ...    ELSE    Ctl Attr    ${menu}    get menuitem    Справка    О программе
     Ctl Attr    ${about}    do click
-    ${dlg}=    Wnd Get    parent    ${win}    timeout    5s    assert
+    ${dlg}=    Wnd Get    parent    ${win}    timeout    ~5s    assert
     ...    single
     ${btn}=    Ctl Get    button    parent    ${win}    name    OK
-    ...    timeout    5s    single
-    ${btn}=    Run Keyword If    ${btn}    Set Variable    ${btn}
-    ...    ELSE    Ctl Get    button    parent    ${win}    name
-    ...    ОК    timeout    5s    assert    single
-    Wnd Attr    ${dlg}    do wait_while_busy
-    Wnd Attr    ${dlg}    do close
-    Comment    Ctl Attr    ${btn}    do click
-    Wnd Get    parent    ${win}    timeout    5s    assert    none
+    ...    timeout    ~5s    assert    single
+    Ctl Attr    ${btn}    do click
+    Wnd Get    parent    ${win}    timeout    ~5s    assert    none
     Wnd Attr    ${win}    do wait_while_busy
-    ${menu}=    Wnd Attr    ${win}    get menu
     ${menu}=    Ctl Get    menu    parent    ${win}    name    Application
-    ...    single
-    ${menu}=    Run Keyword If    ${menu}    Set Variable    ${menu}
-    ...    ELSE    Ctl Get    menu    parent    ${win}    name
-    ...    Приложение    single    assert
-    Run Keyword And Ignore Error    Ctl Attr    ${menu}    click menuitem    File    Exit    <END>
-    Run Keyword And Ignore Error    Ctl Attr    ${menu}    click menuitem    Файл    Выход    <END>
+    ...    single    assert
+    ${exit}=    Ctl Attr    ${menu}    click menuitem    File    Exit    <END>
+    Comment    Ctl Attr    ${exit}    do click
 
 Checkboxes
     ${app1}=    App Launch    ipy.exe    params    ..\\gui_progs\\wpf\\gui.py    assert    test_teardown
     ${win1}=    Wnd Get    app    ${app1}    re_title    ^IronPythonWPF$    single
-    ...    assert    timeout    5s
+    ...    assert    timeout    ~5s
     ${cbox1}=    Ctl Get    checkbox    parent    ${win1}    automation_id    checkBox1
     ...    single    assert
     ${false}=    Ctl Attr    ${cbox1}    checked
@@ -233,7 +219,7 @@ Checkboxes
 Radiobuttons and tabs
     ${app1}=    App Launch    ipy.exe    params    ..\\gui_progs\\wpf\\gui.py    assert    test_teardown
     ${win1}=    Wnd Get    app    ${app1}    re_title    ^IronPythonWPF$    single
-    ...    assert    timeout    5s
+    ...    assert    timeout    ~5s
     ${tab}=    Ctl Get    tab    parent    ${win1}    single    assert
     @{pages}=    Ctl Attr    ${tab}    tabpages
     ${num_pages}=    Ctl Attr    ${tab}    num_tabpages
@@ -289,9 +275,9 @@ Radiobuttons and tabs
 Tree
     ${app1}=    App Launch    ipy.exe    params    ..\\gui_progs\\wpf\\gui.py    assert    test_teardown
     ${win1}=    Wnd Get    app    ${app1}    re_title    ^IronPythonWPF$    single
-    ...    assert    timeout    5s
+    ...    assert    timeout    ~5s
     ${tree}=    Ctl Get    tree    parent    ${win1}    single    assert
-    ...    timeout    5s
+    ...    timeout    ~5s
     @{top_nodes}=    Ctl Attr    ${tree}    nodes
     ${node_1}=    Set Variable    @{top_nodes}[0]
     @{subnodes}=    Ctl Attr    ${node_1}    nodes
@@ -321,10 +307,10 @@ User error
 Keyboard
     ${app1}=    App Launch    ipy.exe    params    ..\\gui_progs\\wpf\\gui.py    assert
     ${win1}=    Wnd Get    app    ${app1}    re_title    ^IronPythonWPF$    single
-    ...    assert    timeout    ~10s
+    ...    assert    timeout    ~5s
     ${kbd}=    Wnd Attr    ${win1}    keyboard
     ${text}=    Ctl Get    edit    parent    ${win1}    single    timeout
-    ...    2s    assert
+    ...    ~2s    assert
     Ctl Attr    ${text}    do focus
     Kbd Attr    ${kbd}    hold    CONTROL    press    A    leave
     ...    CONTROL    press    DELETE
@@ -340,19 +326,19 @@ Keyboard
 Toolbar
     ${app1}=    App Launch    ipy.exe    params    ..\\gui_progs\\wpf\\gui.py    assert    test_teardown
     ${win1}=    Wnd Get    app    ${app1}    re_title    ^IronPythonWPF$    single
-    ...    assert    timeout    5s
+    ...    assert    timeout    ~5s
     ${b}=    Ctl Get    button    parent    ${win1}    automation_id    AID_Button1
-    ...    single    assert    timeout    5s
+    ...    single    assert    timeout    ~5s
     Ctl Attr    ${b}    do click
     ${win2}=    Wnd Get    app    ${app1}    re_title    ^AboutWindow$    single
-    ...    assert    timeout    5s
+    ...    assert    timeout    ~5s
     ${tb1}=    Ctl Get    toolbar    parent    ${win2}    automation_id    Toolbar1
-    ...    single    assert    timeout    5s
+    ...    single    assert    timeout    ~5s
     ${tb2}=    Ctl Get    toolbar    parent    ${win2}    automation_id    Toolbar2
-    ...    single    assert    timeout    5s
+    ...    single    assert    timeout    ~5s
     ${i1}=    Ctl Attr    ${tb1}    menuitem    MenuItem
     Ctl Attr    ${i1}    do click
     ${txt}=    Ctl Get    text    parent    ${win2}    automation_id    Text1
-    ...    single    assert    timeout    5s
+    ...    single    assert    timeout    ~5s
     ${v}=    Ctl Attr    ${txt}    name
     Should Be Equal    ${v}    Click1

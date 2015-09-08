@@ -1,4 +1,11 @@
 from time import time, clock, sleep
+import os
+import subprocess
+
+FASTER_COMPUTER = 1
+SLOW_COMPUTER = 3
+VERY_SLOW_COMPUTER = 5
+
 
 class IronbotException(Exception):
     pass
@@ -6,6 +13,12 @@ class IronbotException(Exception):
 class UserError(Exception):
     def __init__(self, exc, txt):
         Exception.__init__(self,u'%s (%s)' % (txt, unicode(exc)))
+
+def get_function(seq):
+    i = iter(seq)
+    def fun():
+        return i.next()
+    return fun
 
 def error_decorator(f):
     """
@@ -65,17 +78,58 @@ def assert_raises(exc, f, *a, **kw):
         return
     raise AssertionError("A function has not raised the exception you are waiting for")
 
+def timing():
+    print("timing")
+    begin_time = time()
+    p = subprocess.call('ipy test.py', shell=True)
+    sum_time = time() - begin_time
+    return sum_time
 
 class Delay(object):
     COEFF = (('ms', 0.001), ('s', 1.0), ('m', 60.0), ('h', 3600.0)) #The order is significant!!!
     FOREVER = 'forever'
     BENCHMARKED_FLAG = '~'
-    BENCHMARK = 2     #Lower is better (faster computer)
-
-
+    BENCHMARK_INITIAL = False
+    if not BENCHMARK_INITIAL:
+       BENCHMARK = 2     #Lower is better (faster computer)
     @classmethod
-    def do_benchmarking(cls):
-        cls.BENCHMARK = 1
+    def do_benchmarking(cls, time_f=time):
+        """
+        >>> Delay.BENCHMARK=None
+        >>> Delay.do_benchmarking(get_function((0, FASTER_COMPUTER*0.5)))
+        >>> Delay.BENCHMARK
+        1
+        >>> Delay.BENCHMARK=None
+        >>> Delay.do_benchmarking(get_function((FASTER_COMPUTER,SLOW_COMPUTER)))
+        >>> Delay.BENCHMARK
+        3
+        >>> Delay.BENCHMARK=None
+        >>> Delay.do_benchmarking(get_function((0,FASTER_COMPUTER*5)))
+        >>> Delay.BENCHMARK
+        5
+        >>> Delay.BENCHMARK=7
+        >>> Delay.do_benchmarking(get_function((0,FASTER_COMPUTER*5)))
+        >>> Delay.BENCHMARK
+        7
+        >>> Delay.BENCHMARK=None
+        >>> Delay.do_benchmarking(get_function((0,FASTER_COMPUTER*1.5)))
+        >>> Delay.BENCHMARK
+        3
+        >>> Delay.BENCHMARK=None
+        >>> Delay.do_benchmarking(get_function((0,0)))
+        >>> Delay.BENCHMARK
+        1
+    """
+        if cls.BENCHMARK is None:
+            cls.BENCHMARK_INITIAL = True
+            cls.BENCHMARK = FASTER_COMPUTER
+            begin_time = time_f()
+            p = subprocess.call('ipy test.py', shell=True)
+            s_time = time_f() - begin_time
+            if s_time > 1 and s_time < 4:
+               cls.BENCHMARK = SLOW_COMPUTER
+            if s_time > 4:
+              cls.BENCHMARK = VERY_SLOW_COMPUTER
 
     def __cmp__(self, sec):
         """
@@ -132,6 +186,7 @@ class Delay(object):
         if s.startswith(self.BENCHMARKED_FLAG):
             s = s[len(self.BENCHMARKED_FLAG):]
             k *= self.BENCHMARK
+
         try:
             self.value = float(s) * k
         except ValueError:
@@ -169,9 +224,9 @@ def result_modifier(res, src_list=None, not_found=False, any=False, all=False, s
     >>> result_modifier([], all=True)
     (True, [], None)
     >>> result_modifier([], not_found=True, single=True)
-    (False, [], "The result does not match 'single' flag")
+    (False, [], "The result does not match 'single' flag, found 0 item(s)")
     >>> result_modifier([], single=True)
-    (False, [], "The result does not match 'single' flag")
+    (False, [], "The result does not match 'single' flag, found 0 item(s)")
     >>> result_modifier([], not_found=True, none=True)
     (True, True, None)
     >>> result_modifier([], none=True)
@@ -181,9 +236,9 @@ def result_modifier(res, src_list=None, not_found=False, any=False, all=False, s
     >>> result_modifier([], number=0)
     (True, [], None)
     >>> result_modifier([], number=1)
-    (False, [], "The result does not match 'number' value")
+    (False, [], "The result does not match 'number' value, found 0 item(s)")
     >>> result_modifier([], number=1)
-    (False, [], "The result does not match 'number' value")
+    (False, [], "The result does not match 'number' value, found 0 item(s)")
     >>> result_modifier([None], not_found=True, any=True)
     (True, [None], None)
     >>> result_modifier([None], any=True)
@@ -195,19 +250,19 @@ def result_modifier(res, src_list=None, not_found=False, any=False, all=False, s
     >>> result_modifier([None], not_found=True, single=True)
     (True, None, None)
     >>> result_modifier([None], single=True)
-    (False, [None], "The result does not match 'single' flag")
+    (False, [None], "The result does not match 'single' flag, found 0 item(s)")
     >>> result_modifier([None], not_found=True, none=True)
-    (False, False, "The result does not match 'none' flag")
+    (False, False, "The result does not match 'none' flag, found 1 item(s)")
     >>> result_modifier([None], none=True)
     (True, True, None)
     >>> result_modifier([None], not_found=True, number=0)
-    (False, [None], "The result does not match 'number' value")
+    (False, [None], "The result does not match 'number' value, found 1 item(s)")
     >>> result_modifier([None], number=0)
     (True, [None], None)
     >>> result_modifier([None], not_found=True, number=1)
     (True, [None], None)
     >>> result_modifier([None], number=1)
-    (False, [None], "The result does not match 'number' value")
+    (False, [None], "The result does not match 'number' value, found 0 item(s)")
     >>> result_modifier([1], not_found=True, any=True)
     (False, [1], "The result does not match 'any' flag")
     >>> result_modifier([1], not_found=True, any=True, prefer_bool=True)
@@ -219,19 +274,19 @@ def result_modifier(res, src_list=None, not_found=False, any=False, all=False, s
     >>> result_modifier([1], all=True)
     (True, [1], None)
     >>> result_modifier([1], not_found=True, single=True)
-    (False, [1], "The result does not match 'single' flag")
+    (False, [1], "The result does not match 'single' flag, found 0 item(s)")
     >>> result_modifier([1], single=True)
     (True, 1, None)
     >>> result_modifier([1], not_found=True, none=True)
     (True, True, None)
     >>> result_modifier([1], none=True)
-    (False, False, "The result does not match 'none' flag")
+    (False, False, "The result does not match 'none' flag, found 1 item(s)")
     >>> result_modifier([1], not_found=True, number=0)
     (True, [1], None)
     >>> result_modifier([1], number=0)
-    (False, [1], "The result does not match 'number' value")
+    (False, [1], "The result does not match 'number' value, found 1 item(s)")
     >>> result_modifier([1], not_found=True, number=1)
-    (False, [1], "The result does not match 'number' value")
+    (False, [1], "The result does not match 'number' value, found 0 item(s)")
     >>> result_modifier([1], number=1)
     (True, [1], None)
     >>> v = False
