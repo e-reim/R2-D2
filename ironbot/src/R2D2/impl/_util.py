@@ -90,8 +90,7 @@ class Delay(object):
     FOREVER = 'forever'
     BENCHMARKED_FLAG = '~'
     BENCHMARK_INITIAL = False
-    if not BENCHMARK_INITIAL:
-       BENCHMARK = 2     #Lower is better (faster computer)
+    BENCHMARK = VERY_SLOW_COMPUTER     #Lower is better (faster computer)
     @classmethod
     def do_benchmarking(cls, time_f=time):
         """
@@ -126,9 +125,9 @@ class Delay(object):
             begin_time = time_f()
             p = subprocess.call('ipy test.py', shell=True)
             s_time = time_f() - begin_time
-            if s_time > 1 and s_time < 4:
+            if s_time > SLOW_COMPUTER and s_time < VERY_SLOW_COMPUTER:
                cls.BENCHMARK = SLOW_COMPUTER
-            if s_time > 4:
+            if s_time > VERY_SLOW_COMPUTER:
               cls.BENCHMARK = VERY_SLOW_COMPUTER
 
     def __cmp__(self, sec):
