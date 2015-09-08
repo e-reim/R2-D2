@@ -100,7 +100,7 @@ def on_enter_test():
 
 def on_enter_suite():
     CONTROLLED_APPS.append([])
-
+    Delay.do_benchmarking()
 
 def on_leave_test():
     for a in CONTROLLED_APPS[-1]:
@@ -446,6 +446,7 @@ def _wnd_filter(wlist, single=False, negative=False, none=False, number=None, at
         raise IronbotException('Wnd Filter failed: %s' % msg)
 
     logging.warning('Wnd Filter failed: %s' % msg)
+
     return res
 
 
